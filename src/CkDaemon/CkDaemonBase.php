@@ -7,4 +7,8 @@ class CkDaemonBase
     {
         echo "This is daemon lib info!<br />";
     }
+    public static function test()
+    {
+        echo "This is daemon lib info!<br />";
+    }
 }
