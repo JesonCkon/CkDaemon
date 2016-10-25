@@ -1,0 +1,12 @@
+{
+    "name": "kontem/ck-daemon",
+    "description": "Multi process and multi task PHP Lib",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jeson.ckon",
+            "email": "ckontem@gmail.com"
+        }
+    ],
+    "require": {}
+}
