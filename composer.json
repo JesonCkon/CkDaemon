@@ -8,5 +8,10 @@
             "email": "ckontem@gmail.com"
         }
     ],
-    "require": {}
+    "autoload": {
+        "psr-4": { "CkDaemon\\": "src" }
+    },
+    "require": {
+      "php":">=5.4.0"
+    }
 }
