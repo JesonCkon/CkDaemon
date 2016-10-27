@@ -1,5 +1,5 @@
 <?php
-namespace CkDaemon\CkDaemonBase;
+namespace CkDaemon;
 
 class CkDaemonBase
 {
