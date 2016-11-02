@@ -34,8 +34,12 @@ class CkContainer
             #return $this->s[$k]($this);
             $temp_cache_obj = $this->_getCache($k);
             if ($temp_cache_obj == false) {
-                $func =(string)$this->s[$k];
-                $obj = $func($this);
+                if(gettype($this->s[$k]) == "object"){
+                    $obj = $this->s[$k];
+                }else{
+                    $func =$this->s[$k];
+                    $obj = $func($this);
+                }
                 $this->_setCache($k, $obj);
 
                 return $obj;

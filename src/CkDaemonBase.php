@@ -11,6 +11,9 @@ class CkDaemonBase
     public $error_message = '';
     public $init_status = false;
     protected $jobs_list = array();
+    protected $jobs_list_config = array();
+    protected $jobs_return = array();
+    protected $units;
 
     public function __construct($user = 'nobody', $output = "/dev/null")
     {
@@ -89,20 +92,44 @@ class CkDaemonBase
         return $is_set_user;
     }
 
-    protected function setJobs()
+    public function setJobs()
     {
-        $num_args = func_num_args();
-        if (isset($num_args[0])) {
-            if($num_args[0] instanceof \Closure){
-                $this->jobs_list[] = $num_args[0];
+        $num_args = func_get_args();
+        $max_job_index = count($this->jobs_list) + 1;
+        if (isset($num_args[ 0 ])) {
+            if ($num_args[ 0 ] instanceof \Closure) {
+                $this->jobs_list[ $max_job_index ] = $num_args[ 0 ];
+                if (isset($num_args[ 1 ])) {
+                    $this->jobs_list_config[ $max_job_index ] = $num_args[ 1 ];
+                }
             }
-        }else{
+        } else {
             //return $this->
         }
     }
 
+    public function setUnits(CkUnitBase $ckUnitBase)
+    {
+        $this->units = $ckUnitBase;
+    }
+
+    public function getTransmit()
+    {
+        return $this->transmit;
+    }
+
     protected function start()
     {
+        $this->_log("---- process start ----");
+        foreach ($this->jobs_list as $index => $job) {
+            $obj = $this->jobs_list[ $index ];
+            if ($obj instanceof \Closure) {
+                if(isset($this->jobs_list_config[$index])){
+                    
+                }
+                $this->jobs_return[ $index ] = $obj->call($this, $this);
+            }
+        }
     }
 
     protected function stop()
@@ -119,7 +146,6 @@ class CkDaemonBase
 
     public function run()
     {
-        //print_r($this->argv);
         if ($this->argc != 2) {
             $this->usage();
         } else {
@@ -137,4 +163,8 @@ class CkDaemonBase
         }
     }
 
+    private function _log($message)
+    {
+        printf("%s\t%d\t%d\t%s\n", date("c"), posix_getpid(), posix_getppid(), $message);
+    }
 }

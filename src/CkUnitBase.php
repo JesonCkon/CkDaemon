@@ -11,15 +11,8 @@ namespace CkDaemon;
 
 class CkUnitBase extends CkContainer
 {
-    public static $_instance;
-
-    public static function getInstance()
-    {
-        if (!(self::$_instance instanceof self)) {
-            self::$_instance = new self();
-        }
-
-        return self::$_instance;
+    public function getObjects(){
+        //return $this->s;
     }
 
 }
