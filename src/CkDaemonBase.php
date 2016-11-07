@@ -121,15 +121,52 @@ class CkDaemonBase
     protected function start()
     {
         $this->_log("---- process start ----");
+
         foreach ($this->jobs_list as $index => $job) {
             $obj = $this->jobs_list[ $index ];
             if ($obj instanceof \Closure) {
-                if(isset($this->jobs_list_config[$index])){
-                    
-                }
-                $this->jobs_return[ $index ] = $obj->call($this, $this);
+                $temp_job_conf = isset($this->jobs_list_config[ $index ]) ? $this->jobs_list_config[ $index ] : null;
+                //$this->jobs_return[ $index ] = $obj->call($this, $this);
+                $this->createProcess($obj, $temp_job_conf);
             }
         }
+    }
+
+    protected function createProcess($func_object, $config)
+    {
+
+        $count = $config[ 'workers' ];
+        while (true) {
+            if (function_exists('pcntl_signal_dispatch')) {
+
+                pcntl_signal_dispatch();
+            }
+            $pid = -1;
+            if ($this->workers_count < $count) {
+                echo $pid = pcntl_fork();
+            }
+            if ($pid > 0) {
+                $this->workers_count++;
+
+            } elseif ($pid == 0) {
+
+                // 这个符号表示恢复系统对信号的默认处理
+                pcntl_signal(SIGTERM, SIG_DFL);
+                pcntl_signal(SIGCHLD, SIG_DFL);
+                if ($func_object instanceof \Closure) {
+                    $this->_log("---- " . $this->workers_count . " start ----");
+                    $func_object->call($this, $this);
+                    $this->_log("---- " . $this->workers_count . " end ----");
+                }
+
+                return;
+
+            } else {
+                $this->_log("---- process end ----");
+                exit(0);
+            }
+        }
+        exit(0);
     }
 
     protected function stop()
