@@ -13,6 +13,10 @@ class CkIPCShmop extends CkIPCAbstract
 {
     protected $resource = array();
 
+    public function __construct() {
+        return $this;
+    }
+
     public function init()
     {
         $size = 0;
@@ -39,8 +43,8 @@ class CkIPCShmop extends CkIPCAbstract
             $path = isset($args[ 0 ]) ? $args[ 0 ] : "";
             $content = isset($args[ 1 ]) ? $args[ 1 ] : null;
         }
+        $path = $this->checkShmopFile($path);
         $resource_info = $this->resource[ md5($path) ];
-
         $shmop_key = $resource_info[ 'shmop_key' ];
         $resource_id = shmop_open($shmop_key, 'c', 0755, strlen($content));
         $result = shmop_write($resource_id, $content, 0);
@@ -56,6 +60,7 @@ class CkIPCShmop extends CkIPCAbstract
         if (count($args) > 0) {
             $path = isset($args[ 0 ]) ? $args[ 0 ] : "";
         }
+        $path = $this->checkShmopFile($path);
         $resource_info = $this->resource[ md5($path) ];
 
         $shmop_key = $resource_info[ 'shmop_key' ];
@@ -77,6 +82,7 @@ class CkIPCShmop extends CkIPCAbstract
             $path = isset($args[ 0 ]) ? $args[ 0 ] : "";
             $content = isset($args[ 1 ]) ? $args[ 1 ] : null;
         }
+
         $resource_info = $this->resource[ md5($path) ];
 
         $shmop_key = $resource_info[ 'shmop_key' ];
@@ -106,5 +112,30 @@ class CkIPCShmop extends CkIPCAbstract
         $resource_id = shmop_open($shmop_key, 'a', 0, 0);
         shmop_delete($resource_id);
         shmop_close($resource_id);
+    }
+    public function checkShmopFile($path,$size=1024){
+
+        if(!file_exists($path)){
+            #var_dump(getcwd().DIRECTORY_SEPARATOR.$path);exit;
+            $path = getcwd().DIRECTORY_SEPARATOR.$path;
+            $fp = fopen($path,"a+");
+            if( $fp ){
+                fwrite($fp,null);
+                fclose($fp);
+            }else{
+                return false;
+            }
+            $shmop_key = ftok($path, 't');
+            $shmop_id = shmop_open($shmop_key, "c", 0755, $size);
+            $this->resource[ md5($path) ] = array("shmop_key" => $shmop_key, "shmop_id" => $shmop_id);
+        }else{
+            $path = dirname($path).DIRECTORY_SEPARATOR.$path;
+            if(file_exists($path)){
+                $shmop_key = ftok($path, 't');
+                $shmop_id = shmop_open($shmop_key, "c", 0755, $size);
+                $this->resource[ md5($path) ] = array("shmop_key" => $shmop_key, "shmop_id" => $shmop_id);
+            }
+        }
+        return $path;
     }
 }

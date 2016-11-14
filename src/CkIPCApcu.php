@@ -12,7 +12,9 @@ namespace CkDaemon;
 class CkIPCApcu extends CkIPCAbstract
 {
     public $ttl = 86400;
-
+    public function __construct() {
+        return $this;
+    }
     public function init()
     {
         return CkCommon::CheckExt("apcu");

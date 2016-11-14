@@ -22,16 +22,18 @@ class CkIPC
 
             return false;
         }
+        $this->ipc_object = false;
         if (extension_loaded($drive)) {
             if ($drive == 'apcu') {
-                return new CkIPCApcu();
+                $this->ipc_object = new CkIPCApcu();
             }
             if ($drive == 'apc') {
-                return new CkIPCApc();
+                $this->ipc_object = new CkIPCApc();
             }
             if ($drive == 'shmop') {
-                return new CkIPCShmop();
+                $this->ipc_object = new CkIPCShmop();
             }
         }
+        return $this->ipc_object;
     }
 }
