@@ -31,6 +31,10 @@ class CkDataPack
         return $data;
     }
 
+    public static function printPack($bin){
+        echo "output: 0x" . bin2hex($bin) . "\n";
+    }
+
     public static function combine_protocol($content, $parse = "a6ia*")
     {
         $bin = pack($parse, "json", strlen($content), $content);

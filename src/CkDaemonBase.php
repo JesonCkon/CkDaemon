@@ -14,9 +14,15 @@ class CkDaemonBase
     protected $jobs_list_config = array();
     protected $jobs_return = array();
     protected $units;
+    private $php_cli_version = '';
 
     public function __construct($user = 'nobody', $output = "/dev/null")
     {
+        list($version_passed, $php_version) = CkCommon::phpVersionCheck('5.4.0');
+        if ($version_passed == false) {
+            die("PHP version must be > 5.4.0");
+        }
+        $this->php_cli_version = $php_version;
         global $argc, $argv;
         $this->user = $user;//设置运行的用户 默认情况下nobody
         $this->output = $output; //设置输出的地方
@@ -120,22 +126,25 @@ class CkDaemonBase
 
     protected function start()
     {
-        $this->_log("---- process start ----");
+        $this->_log("---- all process start ----");
 
         foreach ($this->jobs_list as $index => $job) {
             $obj = $this->jobs_list[ $index ];
             if ($obj instanceof \Closure) {
+                #var_dump($obj);
+                #var_dump($index);
                 $temp_job_conf = isset($this->jobs_list_config[ $index ]) ? $this->jobs_list_config[ $index ] : null;
                 //$this->jobs_return[ $index ] = $obj->call($this, $this);
-                $this->createProcess($obj, $temp_job_conf);
+                $this->createProcess($obj, $temp_job_conf, $index);
             }
         }
     }
 
-    protected function createProcess($func_object, $config)
+    protected function createProcess($func_object, $config, $index = null)
     {
-
-        $count = $config[ 'workers' ];
+        $this->_log($this->php_cli_version." PHP VERSION");
+        $count = isset($config[ 'workers' ]) ? $config[ 'workers' ] : 1;
+        $job_name = isset($config[ 'job_name' ]) ? $config[ 'job_name' ] : null;
         while (true) {
             if (function_exists('pcntl_signal_dispatch')) {
 
@@ -143,7 +152,7 @@ class CkDaemonBase
             }
             $pid = -1;
             if ($this->workers_count < $count) {
-                echo $pid = pcntl_fork();
+                $pid = pcntl_fork();
             }
             if ($pid > 0) {
                 $this->workers_count++;
@@ -154,8 +163,18 @@ class CkDaemonBase
                 pcntl_signal(SIGTERM, SIG_DFL);
                 pcntl_signal(SIGCHLD, SIG_DFL);
                 if ($func_object instanceof \Closure) {
-                    $this->_log("---- " . $this->workers_count . " start ----");
-                    $func_object->call($this, $this);
+                    $pid = getmypid();
+                    $this->_log("----" . $job_name . ' process id:' . $pid . ' woker num' . $this->workers_count . " start ----");
+                    //php 7.0 call or use bind to
+                    if (strnatcasecmp($this->php_cli_version, '7.0.0') >= 0) {
+                        $this->jobs_return[ $index ] = $func_object->call($this, $this);
+                    } else {
+                        $this->jobs_return[ $index ] = \Closure::bind($func_object, $this, $this);
+                        #var_dump($this->jobs_return);
+                        //$this->_log("---- php 56 --- sleep start");
+                        //sleep(10);
+                        //$this->_log("---- php 56 --- sleep end");
+                    }
                     $this->_log("---- " . $this->workers_count . " end ----");
                 }
 
