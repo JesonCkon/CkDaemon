@@ -17,6 +17,7 @@ class CkPcntl
     private $jobs = array();
     public $jobs_return = array();
     public $isDaemon = false;
+    public $runFuncTime = 0;
     private $php_cli_version = '';
     private $argv;
     private $argc;
@@ -76,6 +77,9 @@ class CkPcntl
             if ($is_deamon == true) {
                 while (true) {
                     $this->doExecute();
+                    if ($this->runFuncTime > 0) {
+                        sleep($this->runFuncTime);
+                    }
                 }
             } else {
                 $this->doExecute();
@@ -89,10 +93,12 @@ class CkPcntl
     {
         //echo "获取到信号灯  ".$signal;
         if ($signal == SIGINT) {
+            //$this->stop();
+            echo 'signal received SIGINT' . PHP_EOL;
             posix_kill(posix_getpid(), SIGINT);
         }
         if ($signal == SIGTERM) {
-            posix_kill(posix_getpid(), SIGTERM);
+            exit();
         }
         if ($signal == SIGUSR1) {
             echo 'signal received SIGUSR1' . PHP_EOL;
@@ -160,14 +166,15 @@ class CkPcntl
             posix_kill($pid, SIGTERM);
         }
     }
+
     public function status()
     {
         $pid_file = $this->createPidFile();
         $pid = self::getPidByFile($pid_file);
         if ($pid > 0) {
             $is_running = posix_getpgid($pid);
-            if($is_running == true){
-                echo "进程PID : ".$pid." is Running\n";
+            if ($is_running == true) {
+                echo "进程PID : " . $pid . " is Running\n";
             }
         }
     }
@@ -175,6 +182,10 @@ class CkPcntl
     public function setProcessName($name)
     {
         $this->processName = $name;
+    }
+
+    public function restart()
+    {
     }
 
     public function start()
