@@ -17,7 +17,6 @@ class CkPcntl
     private $jobs = array();
     public $jobs_return = array();
     public $isDaemon = false;
-    private $daemon_loop_times = 0;
     public $runFuncTime = 0;
     private $php_cli_version = '';
     private $argv;
@@ -77,7 +76,6 @@ class CkPcntl
             declare (ticks = 1);
             if ($is_deamon == true) {
                 while (true) {
-                    $this->daemon_loop_times = $this->daemon_loop_times + 1;
                     $this->doExecute();
                     if ($this->runFuncTime > 0) {
                         sleep($this->runFuncTime);
@@ -179,7 +177,6 @@ class CkPcntl
             $is_running = posix_getpgid($pid);
             if ($is_running == true) {
                 echo "进程PID : " . $pid . " is Running\n";
-                echo "daemon_loop_times : " . $this->daemon_loop_times . "\n";
             }
         }
     }
