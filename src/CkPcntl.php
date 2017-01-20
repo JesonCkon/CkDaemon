@@ -84,12 +84,19 @@ class CkPcntl
             } else {
                 $this->doExecute();
             }
-            exit(0);
+            $this->endProcess();
+        }
+        $this->endProcess();
+    }
+    private function endProcess()
+    {
+        $pid_file = $this->createPidFile();
+        if(file_exists($pid_file)){
+            unlink($pid_file);
         }
         exit(0);
     }
-
-    function signalHandler($signal)
+    public function signalHandler($signal)
     {
         //echo "获取到信号灯  ".$signal;
         if ($signal == SIGINT) {
